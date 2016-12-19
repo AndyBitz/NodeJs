@@ -14,8 +14,9 @@ function doSomething() {
 		}
 	}
 
-	this.xhttp.open("POST", "/readme.json");
-	this.xhttp.send();
+	this.xhttp.open("POST", "/readme.json", true);
+	this.xhttp.setRequestHeader("Content-type", "text/plain");
+	this.xhttp.send("hello world");
 
 }
 

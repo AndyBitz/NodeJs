@@ -1,63 +1,38 @@
 var http = require('http');
 var fs = require('fs');
 
-
-/*
-
-var server = http.createServer(function (req, res) {
-
-	this.contentHead;
-
-	if (req.url.match(/html/g))
-		contentHead = {"Content-Type":"text/html"};
-	else if (req.url.match(/js/g))
-		contentHead = {"Content-Type":"text/javascript"};
-	else
-		contentHead = {"Content-Type":"text/plain"};
-
-
-	res.writeHead(200, contentHead);
-	sendFile(res, req.url);
-});
-
-server.listen(3000);
-
-console.log("Server running at http://127.0.0.1:3000/");
-
-function sendFile(res, name) {
-
-	let path = 'public/' + name;
-
-	fs.readFile(path, 'utf8', (err, contents) => {
-		if (err) {
-			console.log("\n" + err);
-			res.end("404 - Error");
-		} else {
-			res.end(contents);
-		}
-	});
-}
-
-
-*/
-
+const PORT = 3000;
 
 function myServer() {
 
 	this.server = http.createServer(this.serverCallback.bind(this));
-	this.server.listen(3000);
+	this.server.listen(PORT);
 }
 
 myServer.prototype.serverCallback = function(req, res) {
 	this.req = req;
 	this.res = res;
-	this.setHeaderType();	
-	this.sendContents();
+	this.getBodyData();
+	this.req.on('end', () => {
+		this.body = Buffer.concat(this.body).toString();
+		this.setHeaderType();
+		this.sendContents();
+	});
+	
+	
 };
 
 myServer.prototype.sendContents = function() {
 
 	let path = 'public/' + this.req.url;
+
+	if (this.req.method == "POST") {
+		console.log("\n");
+		console.log(this.req.method + " - " + this.req.connection.remoteAddress + " - " + this.req.url);
+
+		console.log(this.body);
+		console.log("\n");
+	}
 
 	fs.readFile(path, 'utf8', (err, contents) => {
 		if (err) {
@@ -82,6 +57,15 @@ myServer.prototype.setHeaderType = function() {
 		this.contentHead = {"Content-Type":"text/plain"};
 
 	this.res.writeHead(200, this.contentHead);
+
+};
+
+myServer.prototype.getBodyData = function() {
+
+	this.body = [];
+	this.req.on('data', function(chunk){
+		this.body.push(chunk);
+	}.bind(this));
 
 };
 
