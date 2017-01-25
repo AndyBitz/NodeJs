@@ -12,6 +12,9 @@ function myServer() {
 myServer.prototype.serverCallback = function(req, res) {
 	this.req = req;
 	this.res = res;
+
+	console.log(this.req.method + " - " + this.req.connection.remoteAddress + " - " + this.req.url);
+
 	this.getBodyData();
 	this.req.on('end', () => {
 		this.body = Buffer.concat(this.body).toString();
@@ -24,7 +27,9 @@ myServer.prototype.serverCallback = function(req, res) {
 
 myServer.prototype.sendContents = function() {
 
-	let path = 'public/' + this.req.url;
+	const path = 'public/' + (this.req.url==='/' ? 'index.html' : this.req.url);
+
+	console.log(path);
 
 	if (this.req.method == "POST") {
 		console.log("\n");
@@ -34,12 +39,20 @@ myServer.prototype.sendContents = function() {
 		console.log("\n");
 	}
 
-	fs.readFile(path, 'utf8', (err, contents) => {
+	fs.readFile(path, (err, contents) => {
 		if (err) {
 			this.res.writeHead(404, this.contentHead);
 			this.res.end("404 - Error");
 		} else {
-			this.res.end(contents);
+			if (this.contentHead['Content-Type'].match(/image/g)) {
+				// does not work
+				// this.contentHead['Content-Length'] = contents.length;
+				this.res.writeHead(200, this.contentHead);
+				this.res.end(contents);
+			} else {
+				this.res.end(contents);
+			}
+			
 		}
 	});
 
@@ -47,14 +60,26 @@ myServer.prototype.sendContents = function() {
 
 myServer.prototype.setHeaderType = function() {
 
-	if (this.req.url.match(/\.html$/g))
+	if (this.req.url === '/') {
+
 		this.contentHead = {"Content-Type":"text/html"};
-	else if (this.req.url.match(/\.js$/g))
-		this.contentHead = {"Content-Type":"text/javascript"};
-	else if (this.req.url.match(/\.json$/g))
-		this.contentHead = {"Content-Type":"application/json"};
-	else
-		this.contentHead = {"Content-Type":"text/plain"};
+
+	} else {
+
+		if (this.req.url.match(/\.html$/g))
+			this.contentHead = {"Content-Type":"text/html"};
+		else if (this.req.url.match(/\.js$/g))
+			this.contentHead = {"Content-Type":"text/javascript"};
+		else if (this.req.url.match(/\.json$/g))
+			this.contentHead = {"Content-Type":"application/json"};
+		else if (this.req.url.match(/\.jpg$/g))
+			this.contentHead = {"Content-Type":"image/jpeg"};
+		else if (this.req.url.match(/\.png$/g))
+			this.contentHead = {"Content-Type":"image/png"};
+		else
+			this.contentHead = {"Content-Type":"text/plain"};
+
+	}
 
 	this.res.writeHead(200, this.contentHead);
 
