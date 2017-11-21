@@ -1,0 +1,16 @@
+{
+  "name": "http2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node ./src/main.js",
+    "dev": "node --inspect ./src/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.3.0"
+  }
+}
